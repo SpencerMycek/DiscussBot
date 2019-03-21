@@ -1,2 +1,4 @@
 export_tokens.sh
 venv
+.idea
+Python/__pycache__
