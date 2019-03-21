@@ -3,88 +3,91 @@ A Slack application bot user that formats discussion
 Author: Spencer Mycek
 """
 
-import os
-import time
-import re
-from slackclient import SlackClient
+import os, time, re, websocket
+from Python.commands import *
+try:
+    import thread
+except ImportError:
+    import _thread as thread
 
-# instantiate Slack client
-# You must import the Slack Bot User OAuth Access Token
+
 bot_token = os.environ.get('SLACK_BOT_TOKEN')
-print(bot_token)
-slack_client = SlackClient(bot_token)
-# Discussbot's user ID in Slack: Value is assigned after the bot starts up
-discussbot_id = None
-
-# Constants
-RTM_READ_DELAY = 1 # 1 Second delay between reading from RTM
-EXAMPLE_COMMAND = "do"
-MENTION_REGEX = "^<@(|[WU].+?)>(.*)"
+user_token = os.environ.get('SLACK_USER_TOKEN')
+print(str(bot_token) + '\n' + str(user_token))
+discuss_bot_id = None
+discussion_chat_id = None
 
 
-def parse_direct_mention(message_text):
-    """
-        Finds a direct mention (a mention that is at the beginning) in message text
-        and returns the user ID which was mentiond. If there is no direct mention, returns None
-    """
-    matches = re.search(MENTION_REGEX, message_text)
-    # the first group contains the username, the second group contains the remaining message
-    return (matches.group(1), matches.group(2).strip()) if matches else (None, None)
+"""
+    Translates the message received from the server into a dictionary
+"""
+def message_to_dict(message):
+    message_dict = {}
+    if isinstance(message, str):
+        tmp = re.sub("[{}\"]", '', message).split(',')
+        for string in tmp:
+            var = string.split(':')
+            message_dict[var[0]] = var[1]
+    return message_dict
 
 
-def parse_bot_commands(slack_events):
-    """
-        Parses a list of events coming from the slack RTM API to find bot commands.
-        If a bot command is found, this function returns a tuple of command and channel.
-        If its not found, then this cuntion returns None, None.
-    """
-    for event in slack_events:
-        if event["type"] == "message" and not "subtype" in event:
-            user_id, message = parse_direct_mention(event["text"])
-            if user_id == discussbot_id:
-                return message, event["channel"], event["user"] if event["user"] else None
-    return None, None, None
+"""
+Gathers all relevant data and sends it to master_command
+"""
+def handle_response(message_dict):
+    master_command(bot_token, user_token, discuss_bot_id, discussion_chat_id, message_dict)
 
 
-def handle_command(command, channel, user):
-    """
-        Executes bot command if the command is known
-    """
-    # Default response is help text for the user
-    default_response = "Not sure what you mean. Try *{}*.".format(EXAMPLE_COMMAND)
 
-    # Finds and executes given command, filling in response
-    response = None
-    # This is where to implement commands
-    if command.startswith(EXAMPLE_COMMAND):
-        response = "Sure, will do!"
+"""
+    Sends messages from the websocket to a command handler
+"""
+def on_message(ws, message):
+    print(message)
+    message_dict = message_to_dict(message)
+    handle_response(message_dict)
 
-    # Sends response back to the channel
-    if user is not None:
-        slack_client.api_call(
-            "chat.postEphemeral",
-            channel=channel,
-            text=response or default_response,
-            user=user
-        )
-    else:
-        slack_client.api_call(
-            "chat.postMessage",
-            channel=channel,
-            text=response or default_response
-            )
+
+"""
+    Displays websocket errors when they occur
+"""
+def on_error(ws, error):
+    print(error)
+
+
+"""
+    Closes the websocket upon ending the program or signal interrupt
+"""
+def on_close(ws):
+    ws.close()
+    print("### closed ###")
+
+"""
+    Upon beginning the websocket waits for the trace to begin
+"""
+def on_open(ws):
+    time.sleep(1)
+    print("### open ###")
+
+
+def main():
+    global  discuss_bot_id, discussion_chat_id
+    r = requests.get('https://slack.com/api/rtm.connect', {'token':bot_token})
+    discuss_bot_id = r.json()['self']['id']
+    url = r.json()['url']
+    r = requests.get('https://slack.com/api/conversations.list', {'token':bot_token})
+    for channel in r.json()['channels']:
+        if channel['name'] == 'discussion':
+            discussion_chat_id = channel['id']
+    #websocket.enableTrace(True)
+    ws = websocket.WebSocketApp(url=url,
+                                on_message=on_message,
+                                on_error=on_error,
+                                on_close=on_close)
+    ws.on_open = on_open
+    ws.run_forever()
 
 
 if __name__ == "__main__":
-    if slack_client.rtm_connect(with_team_state=False):
-        print("Starter Bot connected and running!")
-        # Read bot's user UD by calling Web API method auth.test
-        discussbot_id = slack_client.api_call("auth.test")["user_id"]
-        while True:
-            command, channel, user = parse_bot_commands(slack_client.rtm_read())
-            if command:
-                handle_command(command, channel, user)
-            time.sleep(RTM_READ_DELAY)
-    else:
-        print("Connection failed. Exception traceback printed above.")
+    main()
 
