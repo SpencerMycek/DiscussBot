@@ -3,7 +3,8 @@ A Slack application bot user that formats discussion
 Author: Spencer Mycek
 """
 
-import os, time, re, websocket
+import os, websocket
+import time, datetime
 from Python.commands import *
 try:
     import thread
@@ -43,8 +44,11 @@ def handle_response(message_dict):
     Sends messages from the websocket to a command handler
 """
 def on_message(ws, message):
-    print(message)
+    ts = time.time()
+    st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
     message_dict = message_to_dict(message)
+    print('[' + st + '] Event in channel: ' + message_dict['channel'] + '. Created by user: ' + message_dict['user'] +
+          '. Event Type: ' + message_dict['type'] + '.')
     handle_response(message_dict)
 
 
