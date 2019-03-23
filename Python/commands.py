@@ -12,7 +12,15 @@ Handles all messages in the "discussion" channel
 and formats the discussion with the user_token
 """
 def format_discussion(bot_token, user_token, message):
-    pass
+    commands={
+        1: '.',
+        2: '->',
+        3: 'thumbs up',
+        4: 'help',
+        5: 'topic',
+        6: 'topics',
+        7: 'new-topic',
+    }
 
 
 """
