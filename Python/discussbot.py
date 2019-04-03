@@ -15,12 +15,10 @@ user_token = os.environ.get('SLACK_USER_TOKEN')
 print(str(bot_token) + '\n' + str(user_token))
 discuss_bot_id = None
 discussion_chat_id = None
-"""
-    Translates the message received from the server into a dictionary
-"""
 
 
 def message_to_dict(message):
+    """Translates the message received from the server into a dictionary"""
     message_dict = {}
     if isinstance(message, str):
         tmp = re.sub("[{}\"]", '', message).split(',')
@@ -30,22 +28,14 @@ def message_to_dict(message):
     return message_dict
 
 
-"""
-Gathers all relevant data and sends it to master_command
-"""
-
-
 def handle_response(message_dict):
+    """Gathers all relevant data and sends it to master_command"""
     master_command(bot_token, user_token, discuss_bot_id, discussion_chat_id,
                    message_dict)
 
 
-"""
-    Sends messages from the websocket to a command handler
-"""
-
-
 def on_message(ws, message):
+    """Sends messages from the websocket to a command handler"""
     ts = time.time()
     st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
     message_dict = message_to_dict(message)
@@ -55,31 +45,19 @@ def on_message(ws, message):
     handle_response(message_dict)
 
 
-"""
-    Displays websocket errors when they occur
-"""
-
-
 def on_error(ws, error):
+    """Displays websocket errors when they occur"""
     print(error)
 
 
-"""
-    Closes the websocket upon ending the program or signal interrupt
-"""
-
-
 def on_close(ws):
+    """Closes the websocket upon ending the program or signal interrupt"""
     ws.close()
     print("### closed ###")
 
 
-"""
-    Upon beginning the websocket waits for the trace to begin
-"""
-
-
 def on_open(ws):
+    """Upon beginning the websocket waits for the trace to begin"""
     time.sleep(1)
     print("### open ###")
 
