@@ -3,6 +3,7 @@ A file to contain all commands and handle command delegations
 Author: Spencer Mycek
 """
 import requests, re
+from discuss_speaker import *
 
 MENTION_REGEX = "^<@(|[WU][^>]+)>(.*)"
 """
@@ -65,7 +66,7 @@ def format_discussion(bot_token, user_token, message):
 
 """
 Handles all messages in all channels not "discussion"
-Commands coming into this channel start with @DiscussBot
+Commands coming into this method must start with @DiscussBot
 """
 
 
@@ -97,7 +98,7 @@ def commands_elsewhere(bot_token, message):
             data={
                 'token': bot_token,
                 'channel': message['channel'],
-                'text': "Upcoming Topics: "
+                'text': discuss_speaker.get_discussion()
             })
     else:
         requests.post(
