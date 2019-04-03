@@ -34,7 +34,8 @@ def format_discussion(bot_token, user_token, message):
     elif commands[3] in message['text'].lower():
         print(message['text'])
     elif commands[5] in message['text'].lower():
-        r = requests.post(
+        if commands[5] == message['text'].lower():
+            r = requests.post(
                 'https://slack.com/api/chat.postEphemeral',
                 data={
                     'token':bot_token,
@@ -42,6 +43,9 @@ def format_discussion(bot_token, user_token, message):
                     'user':message['user'],
                     'text': get_topics()
                 })
+        else:
+            matches = re.match("^([Tt]opic)(.*)", message['text'])
+            add_topic(matches.group(2), message['user'])
     elif commands[4] in message['text'].lower():
         r = requests.post(
             'https://slack.com/api/chat.postEphemeral',
@@ -119,7 +123,7 @@ def master_command(bot_token, user_token, bot_id, channel_id, message):
     Master method that redirects different message inputs to different commands
     Commands coming into this channel
     """
-    if message['type'] == 'message' and not 'subtype' in message:
+    if message['type'] == 'message' and not 'subtype' in message and message['user'] != bot_id:
         if message['channel'] == channel_id:
             format_discussion(bot_token, user_token, message)
         else:

@@ -16,7 +16,7 @@ current_topic = "Default Topic"
 def add_topic(topic, author):
     """Create a new topic"""
     global discussion_list
-    discussion_list[topic] = [
+    discussion_list[str(topic).strip] = [
         [[], author]
     ]  # Creates the first new point with the creator of the topic as the author
 
@@ -35,6 +35,7 @@ def add_direct_response(author):
 
 def get_topics():
     """Returns a list of topics in the discussion as a string"""
+    global discussion_list
     result = ""
     result += "Current Topic: " + current_topic + '\n'
     i = 1
