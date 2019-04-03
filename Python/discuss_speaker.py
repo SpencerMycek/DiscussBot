@@ -8,9 +8,9 @@ Author: Spencer Mycek
 # Example:
 #   'topic':[ [ ['P1','P2'] , 'P3' ], [ [ 'P3', 'P1' ] , 'P2' ] ]
 #
-discussion_list = {"": []}
+discussion_list = {"Default Topic": [], "Topic2":[]}
 # A reference of the current topic to retrieve from discussion_list
-current_topic = ""
+current_topic = "Default Topic"
 
 
 def add_topic(topic, author):
@@ -33,7 +33,16 @@ def add_direct_response(author):
     discussion_list[current_topic][0][0].append(
         author)  # Adds the author to the list of direct responses
 
-def get_discussion():
-    """Returns the current discussion_list"""
-    global discussion_list
-    return discussion_list
+def get_topics():
+    """Returns a list of topics in the discussion as a string"""
+    result = ""
+    result += "Current Topic: " + current_topic + '\n'
+    i = 1
+    for topic in discussion_list.keys():
+        if topic is current_topic:
+            continue
+        result += "Topic {}: {}\n".format(str(i+1), topic)
+        i+=1
+
+    return result
+

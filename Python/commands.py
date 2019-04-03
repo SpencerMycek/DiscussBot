@@ -3,16 +3,17 @@ A file to contain all commands and handle command delegations
 Author: Spencer Mycek
 """
 import requests, re
-from discuss_speaker import *
+from Python.discuss_speaker import *
 
 MENTION_REGEX = "^<@(|[WU][^>]+)>(.*)"
-"""
-Handles all messages in the "discussion" channel
-and formats the discussion with the user_token
-"""
+
 
 
 def format_discussion(bot_token, user_token, message):
+    """
+    Handles all messages in the "discussion" channel
+    and formats the discussion with the user_token
+    """
     commands = {
         1: '.',  # New Point
         2: '-&gt;',  # ->, Direct Response
@@ -25,7 +26,7 @@ def format_discussion(bot_token, user_token, message):
             '*{}* - Signal you have a new point to add to discussion\n'.format(commands[1]) + \
             '*{}* - Signal you have a direct response to the last new point\n'.format(commands[2]) + \
             '*{}* - Thumbs Up the most recent new point or direct response\n'.format(commands[3]) + \
-            '*{}* - Prints the current topic\n'.format(commands[5])
+            '*{}* - Prints the current topic list, or takes a New Topic and puts it into the topic list\n'.format(commands[5])
     if commands[1] in message['text'].lower():
         print(message['text'])
     elif commands[2] in message['text'].lower():
@@ -33,7 +34,14 @@ def format_discussion(bot_token, user_token, message):
     elif commands[3] in message['text'].lower():
         print(message['text'])
     elif commands[5] in message['text'].lower():
-        print(message['text'])
+        r = requests.post(
+                'https://slack.com/api/chat.postEphemeral',
+                data={
+                    'token':bot_token,
+                    'channel':message['channel'],
+                    'user':message['user'],
+                    'text': get_topics()
+                })
     elif commands[4] in message['text'].lower():
         r = requests.post(
             'https://slack.com/api/chat.postEphemeral',
@@ -64,17 +72,17 @@ def format_discussion(bot_token, user_token, message):
         })
 
 
-"""
-Handles all messages in all channels not "discussion"
-Commands coming into this method must start with @DiscussBot
-"""
+
 
 
 def commands_elsewhere(bot_token, message):
+    """
+    Handles all messages in all channels not "discussion"
+    Commands coming into this method must start with @DiscussBot
+    """
     if 'help' in message['text'].lower():
         help_message = "Out of channel DiscussBot commands\n" \
                        "Help - Print this help message\n" \
-                       "Current - Print the current discussion topic\n" \
                        "Topics - Print the list of upcoming topics\n"
         requests.post(
             'https://slack.com/api/chat.postEphemeral',
@@ -84,21 +92,13 @@ def commands_elsewhere(bot_token, message):
                 'user': message['user'],
                 'text': help_message
             })
-    elif 'current' in message['text'].lower():
-        requests.post(
-            'https://slack.com/api/chat.postMessage',
-            data={
-                'token': bot_token,
-                'channel': message['channel'],
-                'text': "Current Topic: "
-            })
     elif 'topics' in message['text'].lower():
         requests.post(
             'https://slack.com/api/chat.postMessage',
             data={
                 'token': bot_token,
                 'channel': message['channel'],
-                'text': discuss_speaker.get_discussion()
+                'text': get_topics()
             })
     else:
         requests.post(
@@ -111,13 +111,14 @@ def commands_elsewhere(bot_token, message):
             })
 
 
-"""
-Master method that redirects different message inputs to different commands
-Commands coming into this channel
-"""
+
 
 
 def master_command(bot_token, user_token, bot_id, channel_id, message):
+    """
+    Master method that redirects different message inputs to different commands
+    Commands coming into this channel
+    """
     if message['type'] == 'message' and not 'subtype' in message:
         if message['channel'] == channel_id:
             format_discussion(bot_token, user_token, message)
