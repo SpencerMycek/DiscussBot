@@ -3,7 +3,7 @@ A file to contain all commands and handle command delegations
 Author: Spencer Mycek
 """
 import requests, re
-import Python.Discussion.discuss_speaker as d
+import Discussion.discuss_speaker as d
 
 MENTION_REGEX = "^<@(|[WU][^>]+)>(.*)"
 

@@ -4,7 +4,7 @@ Author: Spencer Mycek
 """
 import os, websocket, requests, re
 import time, datetime
-import Python.Command.commands as c
+import Command.commands as c
 try:
     import thread
 except ImportError:
