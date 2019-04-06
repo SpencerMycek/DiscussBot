@@ -2,9 +2,9 @@
 A Slack application bot user that formats discussion
 Author: Spencer Mycek
 """
-import os, websocket, requests
+import os, websocket, requests, re
 import time, datetime
-import commands
+import Python.Command.commands as c
 try:
     import thread
 except ImportError:
@@ -30,7 +30,7 @@ def message_to_dict(message):
 
 def handle_response(message_dict):
     """Gathers all relevant data and sends it to master_command"""
-    commands.master_command(bot_token, user_token, discuss_bot_id, discussion_chat_id,
+    c.master_command(bot_token, user_token, discuss_bot_id, discussion_chat_id,
                    message_dict)
 
 
