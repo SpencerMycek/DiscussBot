@@ -3,7 +3,7 @@ A file to contain all commands and handle command delegations
 Author: Spencer Mycek
 """
 import requests, re
-from Python.discuss_speaker import *
+import discuss_speaker
 
 MENTION_REGEX = "^<@(|[WU][^>]+)>(.*)"
 
@@ -15,8 +15,8 @@ def format_discussion(bot_token, user_token, message):
     and formats the discussion with the user_token
     """
     commands = {
-        1: '.',  # New Point
-        2: '-&gt;',  # ->, Direct Response
+        1: '.',  # New Point. Follow with the what you want to say
+        2: '-&gt;',  # ->, Direct Response. Follow with who you are responding too and what you want to say
         3: 'thumbs-up',  # Thumbs up
         4: 'help',  # Display Help Message
         5: 'topic',  # Topic management
@@ -28,9 +28,9 @@ def format_discussion(bot_token, user_token, message):
             '*{}* - Thumbs Up the most recent new point or direct response\n'.format(commands[3]) + \
             '*{}* - Prints the current topic list, or takes a New Topic and puts it into the topic list\n'.format(commands[5])
     if commands[1] in message['text'].lower():
-        print(message['text'])
+        discuss_speaker.add_new_point(message['user'], message['ts'])
     elif commands[2] in message['text'].lower():
-        print(message['text'])
+        discuss_speaker.add_direct_response("author", "target")
     elif commands[3] in message['text'].lower():
         print(message['text'])
     elif commands[5] in message['text'].lower():
@@ -41,11 +41,11 @@ def format_discussion(bot_token, user_token, message):
                     'token':bot_token,
                     'channel':message['channel'],
                     'user':message['user'],
-                    'text': get_topics()
+                    'text': discuss_speaker.get_topics()
                 })
         else:
             matches = re.match("^([Tt]opic)(.*)", message['text'])
-            add_topic(matches.group(2), message['user'])
+            discuss_speaker.add_topic(matches.group(2), message['user'])
     elif commands[4] in message['text'].lower():
         r = requests.post(
             'https://slack.com/api/chat.postEphemeral',
@@ -102,7 +102,7 @@ def commands_elsewhere(bot_token, message):
             data={
                 'token': bot_token,
                 'channel': message['channel'],
-                'text': get_topics()
+                'text': discuss_speaker.get_topics()
             })
     else:
         requests.post(
