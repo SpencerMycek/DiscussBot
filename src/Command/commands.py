@@ -14,6 +14,17 @@ def format_discussion(bot_token, user_token, message):
     Handles all messages in the "discussion" channel
     and formats the discussion with the user_token
     """
+    # Gets rid of command post in Discussion channel
+    requests.post(
+        'https://slack.com/api/chat.delete',
+        data={
+            'token': user_token,
+            'channel': message['channel'],
+            'ts': message['ts'],
+            'as_user': 'true'
+        })
+
+
     commands = {
         1: '.',  # New Point. Follow with the what you want to say
         2: '-&gt;',  # ->, Direct Response. Follow with who you are responding too and what you want to say
@@ -28,9 +39,10 @@ def format_discussion(bot_token, user_token, message):
             '*{}* - Thumbs Up the most recent new point or direct response\n'.format(commands[3]) + \
             '*{}* - Prints the current topic list, or takes a New Topic and puts it into the topic list\n'.format(commands[5])
     if commands[1] in message['text'].lower():
-        d.add_new_point(message['user'], message['ts'])
+        text = re.match('^(. )(.*)', message['text'])
+        d.add_new_point(message['user'], text.group(2), message['ts'], bot_token, message['channel'])
     elif commands[2] in message['text'].lower():
-        d.add_direct_response("author", "target")
+        d.add_direct_response(message['user'], bot_token, message['channel'])
     elif commands[3] in message['text'].lower():
         print(message['text'])
     elif commands[5] in message['text'].lower():
@@ -65,15 +77,7 @@ def format_discussion(bot_token, user_token, message):
                 'text': help_message
             })
 
-    # Gets rid of command post in Discussion channel
-    requests.post(
-        'https://slack.com/api/chat.delete',
-        data={
-            'token': user_token,
-            'channel': message['channel'],
-            'ts': message['ts'],
-            'as_user': 'true'
-        })
+
 
 
 

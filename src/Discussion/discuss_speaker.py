@@ -2,6 +2,7 @@
 A file to maintain speaking order and topic list
 Author: Spencer Mycek
 """
+import requests, json
 
 # A dictionary that keeps track of "topic":List of 'new points'
 # Each new point will have a list of direct response authors at [0] and original author at [1] and a thread_ts at [2]
@@ -28,10 +29,50 @@ def add_topic(topic):
     ]  # Creates the first new point with the creator of the topic as the author
 
 
-def add_new_point(author, ts):
+def add_new_point(author, text, ts, token, channel):
     """Add a new point to the current topic"""
     global discussion_list
     discussion_list[current_topic].append([[], author, ts])
+    name = requests.get('https://slack.com/api/users.info', params={'token':token, 'user':author}).json()
+    name = name['user']['profile']['display_name'] if not "" else name['user']['profile']['real_name']
+    point = "New Point by: {}\n\n".format(name)
+    payload={
+        'token': token,
+        'channel': channel,
+        'blocks':[
+            {
+                'type': 'section',
+                'text': {
+                    'type':'plain_text',
+                    'text': 'New Point by {}\n\n'.format(name)
+                }
+            },
+            {
+                'type':'divider'
+            },
+            {
+                'type': 'section',
+                'text': {
+                    'type': 'plain_text',
+                    'text': '{}\n\n'.format(text)
+                }
+            },
+            {
+                'type': 'divider'
+            },
+            {
+                'type': 'section',
+                'text': {
+                    'type': 'plain_text',
+                    'text': '\nCurrent Topic'.format(current_topic)
+                }
+            }
+        ]
+    }
+    headers = {"Content-Type": "application/json",
+               "Authorization": "Bearer " + token}
+    r = requests.post('https://slack.com/api/chat.postMessage', data=json.dumps(payload), headers=headers)
+    print(r.json())
 
 
 def add_direct_response(author, target):
@@ -40,11 +81,16 @@ def add_direct_response(author, target):
     for x in discussion_list[current_topic]:
         r = requests.get(
             'https://slack.com/api/users.info',
-            data={
+            params={
                 'token': target,
-                'user': x
+                'user': x[1]
             })
-        print(r.json()['user']['name'])
+        name=r.json()['user']['profile']['display_name']
+        if name:
+            print(name)
+        else:
+            print(r.json()['user']['profile']['real_name'])
+
 
 
 def get_topics():
