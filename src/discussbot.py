@@ -42,7 +42,7 @@ def on_message(ws, message):
     message_dict = message_to_dict(message)
     print('[' + st + '] Event in channel: ' + message_dict['channel'] +
           '. Created by user: ' + message_dict['user'] + '. Event Type: ' +
-          message_dict['type'] + '.')
+          str(message_dict['type']) + '.')
     handle_response(message_dict)
 
 
@@ -79,7 +79,6 @@ def main():
         if channel['name'] == 'discussion':
             discussion_chat_id = channel['id']
     print(discussion_chat_id)
-    websocket.enableTrace(True)
     ws = websocket.WebSocketApp(
         url=url, on_message=on_message, on_error=on_error, on_close=on_close)
     ws.on_open = on_open
