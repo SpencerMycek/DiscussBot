@@ -32,7 +32,7 @@ def message_to_dict(message):
 def handle_response(message_dict):
     """Gathers all relevant data and sends it to master_command"""
     c.master_command(bot_token, user_token, discuss_bot_id, discussion_chat_id,
-                   message_dict)
+                     message_dict)
 
 
 def on_message(ws, message):
