@@ -83,7 +83,6 @@ def format_discussion(bot_token, user_token, message):
                     'text': d.get_topics()
                 })
         else:
-            print(message['text'])
             matches = re.match("^([Tt]opic )(.*)", message['text'])
             d.add_topic(matches.group(2))
     elif commands[4] in message['text'].lower():
