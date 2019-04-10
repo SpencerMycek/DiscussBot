@@ -7,6 +7,17 @@ import Discussion.discuss_speaker as d
 
 MENTION_REGEX = "^<@(|[WU][^>]+)>(.*)"
 
+admin=""
+moderators=[]
+
+
+def admin_commands(bot_token, user_token, message):
+    """Runs admin commands"""
+    global moderators
+    if "next_topic" == message['text']:
+        d.next_topic(bot_token, message['channel'])
+    elif "add_mod" in message['text']:
+        print(message['text'])
 
 
 def format_discussion(bot_token, user_token, message):
@@ -14,6 +25,17 @@ def format_discussion(bot_token, user_token, message):
     Handles all messages in the "discussion" channel
     and formats the discussion with the user_token
     """
+    # Gets rid of command post in Discussion channel
+    global admin, moderators
+    requests.post(
+        'https://slack.com/api/chat.delete',
+        data={
+            'token': user_token,
+            'channel': message['channel'],
+            'ts': message['ts'],
+            'as_user': 'true'
+        })
+
     commands = {
         1: '.',  # New Point. Follow with the what you want to say
         2: '-&gt;',  # ->, Direct Response. Follow with who you are responding too and what you want to say
@@ -23,17 +45,24 @@ def format_discussion(bot_token, user_token, message):
     }
     help_message = 'HELP: DiscussBot Commands. Post in Chat:\n' + \
             '*{}* - Prints this help message\n'.format(commands[4]) + \
-            '*{}* - Signal you have a new point to add to discussion\n'.format(commands[1]) + \
-            '*{}* - Signal you have a direct response to the last new point\n'.format(commands[2]) + \
-            '*{}* - Thumbs Up the most recent new point or direct response\n'.format(commands[3]) + \
+            '*{}* - Signal you have a new point to add to discussion. Follow with what you want to say\n'.format(commands[1]) + \
+            '*{}* - Signal you have a direct response to the last new point. ' \
+                'Follow with who you are replying too: @user, and what your want to say\n'.format(commands[2]) + \
             '*{}* - Prints the current topic list, or takes a New Topic and puts it into the topic list\n'.format(commands[5])
-    if commands[1] in message['text'].lower():
-        d.add_new_point(message['user'], message['ts'])
+
+    if admin == "" and "set_admin" == message['text']:
+        admin = message['user']
+    elif (admin == message['user'] or message['user'] in moderators) and "next_topic" == message['text']:
+        admin_commands(bot_token, user_token, message)
+    elif commands[1] in message['text'].lower():
+        text = re.match('^(. )(.*)', message['text'])
+        d.add_new_point(message['user'], text.group(2), message['ts'], bot_token, message['channel'])
     elif commands[2] in message['text'].lower():
-        d.add_direct_response("author", "target")
+        text = re.match('^(-&gt;) <@([U][^>]+)> (.*)', message['text'])
+        d.add_direct_response(message['user'], bot_token, message['channel'], text.group(2), text.group(3))
     elif commands[3] in message['text'].lower():
-        print(message['text'])
-    elif commands[5] in message['text'].lower():
+        print(message['text']) # Not an accepted command
+    elif message['text'] != 'next_topic' and commands[5] in message['text'].lower() and message['text']:
         if commands[5] == message['text'].lower():
             r = requests.post(
                 'https://slack.com/api/chat.postEphemeral',
@@ -44,8 +73,9 @@ def format_discussion(bot_token, user_token, message):
                     'text': d.get_topics()
                 })
         else:
-            matches = re.match("^([Tt]opic)(.*)", message['text'])
-            d.add_topic(matches.group(2), message['user'])
+            print(message['text'])
+            matches = re.match("^([Tt]opic )(.*)", message['text'])
+            d.add_topic(matches.group(2))
     elif commands[4] in message['text'].lower():
         r = requests.post(
             'https://slack.com/api/chat.postEphemeral',
@@ -62,18 +92,10 @@ def format_discussion(bot_token, user_token, message):
                 'token': bot_token,
                 'channel': message['channel'],
                 'user': message['user'],
-                'text': help_message
+                'text': "I don't know that, try *help*"
             })
 
-    # Gets rid of command post in Discussion channel
-    requests.post(
-        'https://slack.com/api/chat.delete',
-        data={
-            'token': user_token,
-            'channel': message['channel'],
-            'ts': message['ts'],
-            'as_user': 'true'
-        })
+
 
 
 
