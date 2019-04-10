@@ -5,20 +5,21 @@ Author: Spencer Mycek
 import os, websocket, requests, re
 import time, datetime
 import Command.commands as c
-try:
-    import thread
-except ImportError:
-    import _thread as thread
 
+# Get Slack OAuth tokens from environment
 bot_token = os.environ.get('SLACK_BOT_TOKEN')
 user_token = os.environ.get('SLACK_USER_TOKEN')
-print(str(bot_token) + '\n' + str(user_token))
+#print(str(bot_token) + '\n' + str(user_token))
+# Required globals of useful constants
 discuss_bot_id = None
 discussion_chat_id = None
 
 
 def message_to_dict(message):
-    """Translates the message received from the server into a dictionary"""
+    """
+    Translates the message received from the server into a dictionary
+    :return: A dictionary, similar to json format
+    """
     message_dict = {}
     if isinstance(message, str):
         tmp = re.sub("[{}\"]", '', message).split(',')
@@ -63,6 +64,11 @@ def on_open(ws):
 
 
 def main():
+    """
+        Begins connection to Slack RTM API and opens a websocket to listen to
+        chat events
+        Runs until Interrupted
+    """
     global discuss_bot_id, discussion_chat_id
     r = requests.get('https://slack.com/api/rtm.connect', {'token': bot_token})
     discuss_bot_id = r.json()['self']['id']
@@ -73,7 +79,7 @@ def main():
         if channel['name'] == 'discussion':
             discussion_chat_id = channel['id']
     print(discussion_chat_id)
-    #websocket.enableTrace(True)
+    websocket.enableTrace(True)
     ws = websocket.WebSocketApp(
         url=url, on_message=on_message, on_error=on_error, on_close=on_close)
     ws.on_open = on_open

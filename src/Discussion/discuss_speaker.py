@@ -4,14 +4,14 @@ Author: Spencer Mycek
 """
 
 # A dictionary that keeps track of "topic":List of 'new points'
-# Each new point will have a list of direct response authors at [0] and original author at [1] and a thread_ts at [2]
+# Each new point will have the original author at [0] and a thread_ts at [1]
 # Example:
 #   { 'topic':[
 #               [
-#                   ['P1','P2'] , 'P3' , thread_ts
+#                   'Author1' , thread_ts
 #               ],
 #               [
-#                   [ 'P3', 'P1' ] , 'P2' , thread_ts
+#                   'Author2' , thread_ts
 #               ]
 #           ]
 #   {
