@@ -2,7 +2,8 @@
 A file to maintain speaking order and topic list
 Author: Spencer Mycek
 """
-import requests, json
+import requests, json, re
+
 
 # A dictionary that keeps track of "topic":List of 'new points'
 # Each new point will have a list of direct response authors at [0] and original author at [1] and a thread_ts at [2]
@@ -34,6 +35,14 @@ def add_new_point(author, text, ts, token, channel):
     global discussion_list
     name = requests.get('https://slack.com/api/users.info', params={'token':token, 'user':author}).json()
     name = name['user']['profile']['display_name'] if not "" else name['user']['profile']['real_name']
+    match = re.search("(\\\\.{5})", text)
+    if match is not None:
+        match = match.groups()
+    else:
+        match = [""]
+    for string in match:
+        if "\\u" in string:
+            text = text.replace(string, "")
     payload={
         'token': token,
         'channel': channel,
@@ -42,7 +51,7 @@ def add_new_point(author, text, ts, token, channel):
             {
                 'type': 'section',
                 'text': {
-                    'type':'plain_text',
+                    'type':'mrkdwn',
                     'text': 'New Point by {}\n\n'.format(name)
                 }
             },
@@ -52,7 +61,7 @@ def add_new_point(author, text, ts, token, channel):
             {
                 'type': 'section',
                 'text': {
-                    'type': 'plain_text',
+                    'type': 'mrkdwn',
                     'text': '{}\n\n'.format(text)
                 }
             },
@@ -62,16 +71,22 @@ def add_new_point(author, text, ts, token, channel):
             {
                 'type': 'section',
                 'text': {
-                    'type': 'plain_text',
+                    'type': 'mrkdwn',
                     'text': '\nCurrent Topic: {}'.format(current_topic)
                 }
+            },
+            {
+                'type': 'divider'
+            },
+            {
+                'type': 'divider'
             },
             {
                 'type': 'divider'
             }
         ]
     }
-    headers = {"Content-Type": "application/json",
+    headers = {"Content-Type": "application/json; charset=utf-8",
                "Authorization": "Bearer " + token}
     r = requests.post('https://slack.com/api/chat.postMessage', data=json.dumps(payload), headers=headers)
     discussion_list[current_topic].append([[], author, r.json()['message']['ts']])
@@ -84,10 +99,19 @@ def add_direct_response(author, token, channel, target, text):
         if target == point[1]:
             ts = point[2]
     ts = ts if not None else 0
+    match = re.search("(\\\\.{5})", text)
+    if match is not None:
+        match = match.groups()
+    else:
+        match = [""]
+    for string in match:
+        if "\\u" in string:
+            text = text.replace(string, "")
     name = requests.get('https://slack.com/api/users.info', params={'token': token, 'user': author}).json()
     name = name['user']['profile']['display_name'] if not "" else name['user']['profile']['real_name']
     headers = {"Content-Type": "application/json",
-               "Authorization": "Bearer " + token}
+               "Authorization": "Bearer " + token,
+               "charset":"utf-8"}
     payload={
         'token': token,
         'channel': channel,
@@ -96,7 +120,7 @@ def add_direct_response(author, token, channel, target, text):
             {
                 'type': 'section',
                 'text': {
-                    'type': 'plain_text',
+                    'type': 'mrkdwn',
                     'text': 'Response from: {}'.format(name)
                 }
             },
@@ -106,7 +130,7 @@ def add_direct_response(author, token, channel, target, text):
             {
                 'type': 'section',
                 'text': {
-                    'type': 'plain_text',
+                    'type': 'mrkdwn',
                     'text': '{}'.format(text)
                 }
             },
