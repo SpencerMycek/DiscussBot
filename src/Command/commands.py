@@ -17,7 +17,7 @@ def admin_commands(bot_token, user_token, message):
     if "next_topic" == message['text']:
         d.next_topic(bot_token, message['channel'])
     elif "add_mod" in message['text']:
-        print(message['text'])
+        moderators.append(message['user'])
 
 
 def format_discussion(bot_token, user_token, message):
