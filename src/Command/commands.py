@@ -15,7 +15,7 @@ def admin_commands(bot_token, user_token, message):
     """Runs admin commands"""
     global moderators
     if "next_topic" == message['text']:
-        print(message['text'])
+        d.next_topic(bot_token, message['channel'])
     elif "add_mod" in message['text']:
         print(message['text'])
 
@@ -50,12 +50,9 @@ def format_discussion(bot_token, user_token, message):
                 'Follow with who you are replying too: @user, and what your want to say\n'.format(commands[2]) + \
             '*{}* - Prints the current topic list, or takes a New Topic and puts it into the topic list\n'.format(commands[5])
 
-    print(message['text'])
-    print(message['user'])
-    print(admin)
     if admin == "" and "set_admin" == message['text']:
         admin = message['user']
-    elif admin == message['user'] and "next_topic" == message['text']:
+    elif (admin == message['user'] or message['user'] in moderators) and "next_topic" == message['text']:
         admin_commands(bot_token, user_token, message)
     elif commands[1] in message['text'].lower():
         text = re.match('^(. )(.*)', message['text'])
@@ -76,8 +73,9 @@ def format_discussion(bot_token, user_token, message):
                     'text': d.get_topics()
                 })
         else:
-            matches = re.match("^([Tt]opic)(.*)", message['text'])
-            d.add_topic(matches.group(2), message['user'])
+            print(message['text'])
+            matches = re.match("^([Tt]opic )(.*)", message['text'])
+            d.add_topic(matches.group(2))
     elif commands[4] in message['text'].lower():
         r = requests.post(
             'https://slack.com/api/chat.postEphemeral',
