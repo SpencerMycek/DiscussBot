@@ -1,3 +1,4 @@
+#!/bin/python
 """
 A file to contain all commands and handle command delegations
 Author: Spencer Mycek

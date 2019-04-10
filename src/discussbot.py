@@ -1,3 +1,4 @@
+#!/bin/bash
 """
 A Slack application bot user that formats discussion
 Author: Spencer Mycek

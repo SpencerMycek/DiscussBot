@@ -1,3 +1,4 @@
+#!/bin/python
 """
 A file to maintain speaking order and topic list
 Author: Spencer Mycek
