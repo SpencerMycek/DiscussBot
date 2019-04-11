@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/python
 """
 A Slack application bot user that formats discussion
 Author: Spencer Mycek
