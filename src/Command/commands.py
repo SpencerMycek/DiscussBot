@@ -129,6 +129,7 @@ def commands_elsewhere(bot_token, message):
             data={
                 'token': bot_token,
                 'channel': message['channel'],
+                'user': message['user'],
                 'text': d.get_topics()
             })
     else:
