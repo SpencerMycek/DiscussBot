@@ -11,6 +11,8 @@ from shutil import rmtree
 
 from setuptools import find_packages, setup, Command
 
+print("Starting Set-up")
+
 os.system("pip install --upgrade pip")
 
 # Package meta-data.
