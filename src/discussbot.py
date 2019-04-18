@@ -3,9 +3,11 @@
 A Slack application bot user that formats discussion
 Author: Spencer Mycek
 """
-import os, websocket, requests, re
+import os, requests, re
 import time, datetime
 import Command.commands as c
+
+import websocket
 
 # Get Slack OAuth tokens from environment
 bot_token = os.environ.get('SLACK_BOT_TOKEN')
