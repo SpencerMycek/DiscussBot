@@ -25,3 +25,7 @@ I also had to work around issues with unicode and ascii. A mobile device, at the
 ## Things I want to add
 In the future I want to add persistent storage and discussion archiving. As well as improve the overall look of the bot.
 As I spend more time on this project I hope that CSH members will be able to use it to have discussions throughout the week instead of just a once-a-week-basis.
+
+## Where its running
+The app is currently running only on my private slack workspace for testing and is being run on an okd docker
+
